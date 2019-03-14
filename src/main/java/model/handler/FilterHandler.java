@@ -1,18 +1,20 @@
 package model.handler;
 
+import edu.uci.ics.crawler4j.url.WebURL;
 import model.Filter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FilterHandler {
-    private Logger logger = LogManager.getLogger(FilterHandler.class);
-    private static final Pattern PICTURE_EXTENTION = Pattern.compile(".*(\\.(|bmp|gif|jpe?g|JPE?G|png))$");
+    private static final String WHITE_SPACE = " ";
+    private final Logger logger = LoggerFactory.getLogger(FilterHandler.class);
     private final Filter filter;
 
     public FilterHandler(Filter filter) {
@@ -31,12 +33,36 @@ public class FilterHandler {
         return true;
     }
 
+    public String extractLinks(Set<WebURL> links){
+        StringBuffer linkBuffer = new StringBuffer();
+        for (WebURL link : links) {
+            if(!isImageFile(link)){
+                linkBuffer.append( link.getURL()+ WHITE_SPACE);
+            }
+        }
+        return linkBuffer.toString();
+    }
+
+    public String extractImages(Set<WebURL> links){
+        StringBuffer linkBuffer = new StringBuffer();
+        for (WebURL link : links) {
+            if(isImageFile(link)){
+                linkBuffer.append( link.getURL()+ WHITE_SPACE);
+            }
+        }
+        return linkBuffer.toString();
+    }
+
+    private Boolean isImageFile(WebURL link){
+        return Pattern.compile(filter.getImageExtension()).matcher(link.getURL()).matches();
+    }
+
     private Boolean isHtmlDocumentLink(String url) {
         return Pattern.compile(filter.getExtensionFilters()).matcher(url).matches();
     }
 
     private Boolean isSubPath(String url) {
-        return url.startsWith(filter.getHost());
+        return url.startsWith(filter.getSiteIdentifier());
     }
 
     private Boolean urlPatternFilter(String url) {

@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 public class WikiPage {
     private String url;
-    private String host;
+    private String siteIdentifier;
     private String title;
     private String contents;
     private String images;
@@ -45,12 +45,12 @@ public class WikiPage {
         this.images = images;
     }
 
-    public String getHost() {
-        return host;
+    public String getSiteIdentifier() {
+        return siteIdentifier;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setSiteIdentifier(String siteIdentifier) {
+        this.siteIdentifier = siteIdentifier;
     }
 
     public String getLinks() {
@@ -89,7 +89,7 @@ public class WikiPage {
     public String toString() {
         return "WikiPage{" +
                 "url='" + url + '\'' +
-                ", host='" + host + '\'' +
+                ", siteIdentifier='" + siteIdentifier + '\'' +
                 ", title='" + title + '\'' +
                 ", contents='" + contents + '\'' +
                 ", images='" + images + '\'' +

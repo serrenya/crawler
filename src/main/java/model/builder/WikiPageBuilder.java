@@ -3,54 +3,54 @@ package model.builder;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
+import model.Filter;
 import model.Selector;
 import model.WikiPage;
+import model.handler.FilterHandler;
 import model.handler.SelectorHandler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import util.TimeGenerator;
 
-import java.io.IOException;
+import java.util.Set;
 
 public class WikiPageBuilder {
 
-    public static WikiPage build(Page page, Selector selector) {
+    public static WikiPage build(Page page, Selector selector,Filter filter) {
         WebURL webURL = page.getWebURL();
-        Document document = generateDocumentForJsoup(page);
-        SelectorHandler handler = generateSelectorHandler(selector);
+        Document document = generateDocuemnt(page);
+        Set<WebURL> links = page.getParseData().getOutgoingUrls();
+
+        SelectorHandler selectorHandler = generateSelectorHandler(selector);
+        FilterHandler filterHandler = generateFilterHandler(filter);
+
 
         WikiPage wikiPage = generateWikiPage();
         wikiPage.setUrl(webURL.getURL());
-        wikiPage.setHost(selector.getHost());
-        wikiPage.setTitle(handler.extractTitle(document));
-        wikiPage.setContents(handler.extractContents(document));
-        wikiPage.setLinks(handler.extractLinks(document));
-        wikiPage.setImages(handler.extractImages(document));
-        wikiPage.setHtml(handler.extractHtml(document));
+        wikiPage.setSiteIdentifier(selector.getSiteIdentifier());
+        wikiPage.setTitle(selectorHandler.extractTitle(document));
+        wikiPage.setContents(selectorHandler.extractContents(document));
+        wikiPage.setLinks(filterHandler.extractLinks(links));
+        wikiPage.setImages(filterHandler.extractImages(links));
+        wikiPage.setHtml(selectorHandler.extractHtml(document));
         wikiPage.setCrawlTime(TimeGenerator.currentTime());
         wikiPage.setCreateTime(TimeGenerator.currentTime());
         return wikiPage;
     }
 
-    private static Document generateDocumentForJsoup(Page page){
-        Document document = null;
-        try {
-            document = Jsoup.connect(page.getWebURL().getURL()).get();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return document;
-    }
-
     private static Document generateDocuemnt(Page page) {
         if (!(page.getParseData() instanceof HtmlParseData)) {
-           throw new IllegalArgumentException();
+            throw new IllegalArgumentException();
         }
         return Jsoup.parse(((HtmlParseData) page.getParseData()).getHtml());
     }
 
     private static SelectorHandler generateSelectorHandler(Selector selector) {
         return new SelectorHandler(selector);
+    }
+
+    private static FilterHandler generateFilterHandler(Filter filter) {
+        return new FilterHandler(filter);
     }
 
     private static WikiPage generateWikiPage() {

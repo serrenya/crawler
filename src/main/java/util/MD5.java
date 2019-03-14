@@ -1,14 +1,14 @@
 package util;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
-    private static Logger logger = LogManager.getLogger(MD5.class);
+    private static Logger logger = LoggerFactory.getLogger(MD5.class);
     private static PropertiesConfiguration properties = PropertiesReader.getProperties();
 
     public static String valueOf(String parameter) {

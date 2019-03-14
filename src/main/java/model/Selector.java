@@ -1,21 +1,16 @@
 package model;
 
 public class Selector {
-    private String host;
+    private String siteIdentifier;
+    private String domain;
+    private String path;
+    private String scheme;
     private String title;
     private String body;
     private String innerUrl;
     private String innerUrlLink;
     private String imageUrl;
     private String imageUrlLink;
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
 
     public String getTitle() {
         return title;
@@ -65,16 +60,35 @@ public class Selector {
         this.imageUrlLink = imageUrlLink;
     }
 
-    @Override
-    public String toString() {
-        return "Selector{" +
-                "  host='" + host + '\'' +
-                ", title='" + title + '\'' +
-                ", body='" + body + '\'' +
-                ", innerUrl='" + innerUrl + '\'' +
-                ", innerUrlLink='" + innerUrlLink + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", imageUrlLink='" + imageUrlLink + '\'' +
-                '}';
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
+
+    public String getSiteIdentifier() {
+        return siteIdentifier;
+    }
+
+    public void setSiteIdentifier(String siteIdentifier) {
+        this.siteIdentifier = siteIdentifier;
     }
 }

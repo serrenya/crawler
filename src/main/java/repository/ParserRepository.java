@@ -1,7 +1,7 @@
 package repository;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import repository.query.QueryBuilder;
 
 import javax.sql.DataSource;
@@ -9,39 +9,39 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParserRepository {
-    private final Logger logger = LogManager.getLogger(ParserRepository.class);
     private static final String SELECTOR = "selector";
     private static final String FILTER = "filter";
+    private final Logger logger = LoggerFactory.getLogger(ParserRepository.class);
     private final DataSource dataSource;
 
     public ParserRepository(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    public String findSelectorBy(String domain) {
-        return executeQuery(domain, SELECTOR);
+    public List<String> findSelector() {
+        return executeQuery(SELECTOR);
     }
 
-    public String findFilterBy(String domain) {
-        return executeQuery(domain, FILTER);
+    public List<String> findFilter() {
+        return executeQuery(FILTER);
     }
 
-    private String executeQuery(String domain, String target) {
-        String wikiParser = null;
-        String query = QueryBuilder.createSelectQueryWithLikeStatement(target);
+    private List<String> executeQuery(String target) {
+        List<String> result = new ArrayList<>();
+        String query = QueryBuilder.gnerateSelectQuery(target);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-
-            statement.setString(1, "%" + domain + "%");
-            ResultSet result = statement.executeQuery();
-            while (result.next()) {
-                wikiParser = result.getString(target);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                result.add(resultSet.getString(target));
             }
         } catch (SQLException e) {
-            logger.info("executeQuery() {}" ,e.getMessage());
+            logger.info("executeQuery() {}", e.getMessage());
         }
-        return wikiParser;
+        return result;
     }
 }

@@ -12,4 +12,11 @@ public class TimeGenerator {
                 .valueOf(LocalDateTime.now()
                         .format(DateTimeFormatter.ofPattern(TIME_FORMAT)));
     }
+
+    public static Timestamp currentTimeMillis() {
+        return new Timestamp(System.currentTimeMillis());
+    }
+    public static Timestamp currentTimeMillis(Long time) {
+        return new Timestamp(time);
+    }
 }

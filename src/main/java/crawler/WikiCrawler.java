@@ -3,20 +3,23 @@ package crawler;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
-import model.*;
+import model.CrawlStatistics;
+import model.Filter;
+import model.Selector;
+import model.WikiPage;
 import model.builder.WikiPageBuilder;
 import model.handler.FilterHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.DataBaseService;
-import util.JsonParser;
+import util.TimeGenerator;
 
 import java.util.Objects;
 
 public class WikiCrawler extends WebCrawler {
 
-    private Logger logger = LogManager.getLogger(WikiCrawler.class);
-    private DataBaseService dataBaseService;
+    private final Logger logger = LoggerFactory.getLogger(WikiCrawler.class);
+    private final DataBaseService dataBaseService;
 
     public WikiCrawler(DataBaseService dataBaseService) {
         this.dataBaseService = dataBaseService;
@@ -24,33 +27,40 @@ public class WikiCrawler extends WebCrawler {
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        String href = url.getURL().toLowerCase();
-        String filterFromDB = dataBaseService.findFilterBy(url.getDomain());
-        if (Objects.isNull(filterFromDB)) {
+        Filter filter = getFilter();
+        if (Objects.isNull(filter)) {
             return false;
         }
-        logger.info("shoud Visit Url {}" , url.getURL());
-        logger.info("filter from db {} ",filterFromDB);
-        Filter filter = JsonParser.convertObject(filterFromDB,Filter.class);
         FilterHandler filterHandler = generatorFilterHandler(filter);
-        return filterHandler.shouldVisit(href);
+        return filterHandler.shouldVisit(url.getURL());
     }
 
     @Override
     public void visit(Page page) {
-        logger.info("visited Url {}", page.getWebURL().getURL());
-        String selectorFromDB = dataBaseService.findSelectorBy(page.getWebURL().getDomain());
-        Selector selector = JsonParser.convertObject(selectorFromDB, Selector.class);
-        WikiPage wikiPage = WikiPageBuilder.build(page,selector);
-        dataBaseService.create(wikiPage);
-    }
+        Selector selector = getSelector();
+        WikiPage wikiPage = WikiPageBuilder.build(page,selector,getFilter());
+        setEndMeasureTime(System.currentTimeMillis());
+        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
+        logger.info("perfomenceTime - Qlength {}",myController.getFrontier().getQueueLength());
 
-    @Override
-    public void onBeforeExit() {
-        logger.info("onBeforeExit() crawl closed.");
+        //Todo q에 들어있는 처리대상 url개수 추가.
+
+        CrawlStatistics statistics = generateCrawlStatistics();
+        statistics.setQueueLength(myController.getFrontier().getQueueLength());
+        statistics.setSiteIdentifier(wikiPage.getSiteIdentifier()); //siteIdentifier
+        statistics.setStartTime(TimeGenerator.currentTimeMillis(getStartMeasureTime()));
+        statistics.setEndTime(TimeGenerator.currentTimeMillis(getEndMeasureTime()));
+        statistics.setUrl(page.getWebURL().getURL());
+        statistics.setPerformanceTime((getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
+        dataBaseService.create(statistics);
+        dataBaseService.create(wikiPage);
     }
 
     private FilterHandler generatorFilterHandler(Filter filter){
         return new FilterHandler(filter);
+    }
+
+    private CrawlStatistics generateCrawlStatistics() {
+        return new CrawlStatistics();
     }
 }

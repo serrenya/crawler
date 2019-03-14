@@ -1,16 +1,19 @@
 package service;
 
+import model.CrawlStatistics;
 import model.WikiPage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import repository.ParserRepository;
+import repository.StatisticsRepository;
 import repository.WikiPageReporitory;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 public class MysqlDataBaseService implements DataBaseService {
 
-    private Logger logger = LogManager.getLogger(MysqlDataBaseService.class);
+    private final Logger logger = LoggerFactory.getLogger(MysqlDataBaseService.class);
     private final DataSource dataSource;
 
     public MysqlDataBaseService(DataSource dataSource) {
@@ -18,20 +21,28 @@ public class MysqlDataBaseService implements DataBaseService {
     }
 
     @Override
-    public String findSelectorBy(String domain) {
-        ParserRepository parserRepository = new ParserRepository(dataSource);
-        return parserRepository.findSelectorBy(domain);
+    public List<String> findSelector() {
+        ParserRepository repository = new ParserRepository(dataSource);
+        return repository.findSelector();
     }
 
     @Override
-    public String findFilterBy(String domain) {
+    public List<String> findFilter() {
         ParserRepository parserRepository = new ParserRepository(dataSource);
-        return parserRepository.findFilterBy(domain);
+        return parserRepository.findFilter();
     }
 
     @Override
     public void create(WikiPage wikiPage) {
-        WikiPageReporitory wikiPageReporitory = new WikiPageReporitory(dataSource);
-        wikiPageReporitory.create(wikiPage);
+        WikiPageReporitory repository = new WikiPageReporitory(dataSource);
+        repository.create(wikiPage);
     }
+
+    @Override
+    public void create(CrawlStatistics statistics) {
+        StatisticsRepository repository = new StatisticsRepository(dataSource);
+        repository.create(statistics);
+    }
+
+
 }
