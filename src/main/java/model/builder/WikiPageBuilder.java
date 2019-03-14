@@ -16,14 +16,21 @@ import java.util.Set;
 
 public class WikiPageBuilder {
 
-    public static WikiPage build(Page page, Selector selector,Filter filter) {
+    private Selector selector;
+    private Filter filter;
+
+    public WikiPageBuilder(Selector selector, Filter filter) {
+        this.selector = selector;
+        this.filter = filter;
+    }
+
+    public WikiPage build(Page page) {
         WebURL webURL = page.getWebURL();
         Document document = generateDocuemnt(page);
         Set<WebURL> links = page.getParseData().getOutgoingUrls();
 
         SelectorHandler selectorHandler = generateSelectorHandler(selector);
         FilterHandler filterHandler = generateFilterHandler(filter);
-
 
         WikiPage wikiPage = generateWikiPage();
         wikiPage.setUrl(webURL.getURL());
@@ -38,22 +45,22 @@ public class WikiPageBuilder {
         return wikiPage;
     }
 
-    private static Document generateDocuemnt(Page page) {
+    private Document generateDocuemnt(Page page) {
         if (!(page.getParseData() instanceof HtmlParseData)) {
             throw new IllegalArgumentException();
         }
         return Jsoup.parse(((HtmlParseData) page.getParseData()).getHtml());
     }
 
-    private static SelectorHandler generateSelectorHandler(Selector selector) {
+    private SelectorHandler generateSelectorHandler(Selector selector) {
         return new SelectorHandler(selector);
     }
 
-    private static FilterHandler generateFilterHandler(Filter filter) {
+    private FilterHandler generateFilterHandler(Filter filter) {
         return new FilterHandler(filter);
     }
 
-    private static WikiPage generateWikiPage() {
+    private WikiPage generateWikiPage() {
         return new WikiPage();
     }
 }

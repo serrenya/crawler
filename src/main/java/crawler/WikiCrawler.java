@@ -37,14 +37,11 @@ public class WikiCrawler extends WebCrawler {
 
     @Override
     public void visit(Page page) {
-        Selector selector = getSelector();
-        WikiPage wikiPage = WikiPageBuilder.build(page,selector,getFilter());
+
+        WikiPage wikiPage = generatorPageBuilder().build(page);
         setEndMeasureTime(System.currentTimeMillis());
-        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
-        logger.info("perfomenceTime - Qlength {}",myController.getFrontier().getQueueLength());
-
-        //Todo q에 들어있는 처리대상 url개수 추가.
-
+        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0); //상수처리
+        //TODO 별도의 매소드로 제외시키기
         CrawlStatistics statistics = generateCrawlStatistics();
         statistics.setQueueLength(myController.getFrontier().getQueueLength());
         statistics.setSiteIdentifier(wikiPage.getSiteIdentifier()); //siteIdentifier
@@ -56,6 +53,9 @@ public class WikiCrawler extends WebCrawler {
         dataBaseService.create(wikiPage);
     }
 
+    private WikiPageBuilder generatorPageBuilder(){
+        return new WikiPageBuilder(getSelector(),getFilter());
+    }
     private FilterHandler generatorFilterHandler(Filter filter){
         return new FilterHandler(filter);
     }
