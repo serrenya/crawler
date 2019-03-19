@@ -116,7 +116,7 @@ public class CrawlController {
 
             for (int i = 1; i <= numberOfCrawlers; ++i) {
                 T crawler = crawlerFactory.newInstance();
-                Thread thread = new Thread(crawler, "Crawler " + i);
+                Thread thread = new Thread(crawler, "Crawler " + i + filter.getDomain());
                 crawler.setThread(thread);
                 crawler.init(i, this);
                 thread.start();

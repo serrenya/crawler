@@ -5,7 +5,6 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
 import model.CrawlStatistics;
 import model.Filter;
-import model.Selector;
 import model.WikiPage;
 import model.builder.WikiPageBuilder;
 import model.handler.FilterHandler;
@@ -37,30 +36,33 @@ public class WikiCrawler extends WebCrawler {
 
     @Override
     public void visit(Page page) {
-
         WikiPage wikiPage = generatorPageBuilder().build(page);
         setEndMeasureTime(System.currentTimeMillis());
-        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0); //상수처리
-        //TODO 별도의 매소드로 제외시키기
-        CrawlStatistics statistics = generateCrawlStatistics();
-        statistics.setQueueLength(myController.getFrontier().getQueueLength());
-        statistics.setSiteIdentifier(wikiPage.getSiteIdentifier()); //siteIdentifier
-        statistics.setStartTime(TimeGenerator.currentTimeMillis(getStartMeasureTime()));
-        statistics.setEndTime(TimeGenerator.currentTimeMillis(getEndMeasureTime()));
-        statistics.setUrl(page.getWebURL().getURL());
-        statistics.setPerformanceTime((getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
+        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0); //todo 상수처리
+        logger.info("outgoingURLs : {}",page.getParseData().getOutgoingUrls().size());
+        CrawlStatistics statistics = generateCrawlStatistics(wikiPage);
         dataBaseService.create(statistics);
         dataBaseService.create(wikiPage);
     }
 
-    private WikiPageBuilder generatorPageBuilder(){
-        return new WikiPageBuilder(getSelector(),getFilter());
+    private WikiPageBuilder generatorPageBuilder() {
+        return new WikiPageBuilder(getSelector(), getFilter());
     }
-    private FilterHandler generatorFilterHandler(Filter filter){
+
+    private FilterHandler generatorFilterHandler(Filter filter) {
         return new FilterHandler(filter);
     }
 
-    private CrawlStatistics generateCrawlStatistics() {
-        return new CrawlStatistics();
+    private CrawlStatistics generateCrawlStatistics(WikiPage page) {
+        CrawlStatistics statistics = new CrawlStatistics();
+        statistics.setQueueLength(myController.getFrontier().getQueueLength());
+        statistics.setSiteIdentifier(page.getSiteIdentifier());
+        statistics.setStartTime(TimeGenerator.currentTimeMillis(getStartMeasureTime()));
+        statistics.setEndTime(TimeGenerator.currentTimeMillis(getEndMeasureTime()));
+        statistics.setUrl(page.getUrl());
+        statistics.setPerformanceTime((getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
+
+        return statistics;
     }
+
 }

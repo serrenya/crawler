@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WebCrawler implements Runnable {
     protected static final Logger logger = LoggerFactory.getLogger(WebCrawler.class);
@@ -180,8 +181,9 @@ public class WebCrawler implements Runnable {
                 if (curURL == null) {
                     return;
                 }
-
+                Long startFetch = System.currentTimeMillis();
                 fetchResult = this.pageFetcher.fetchPage(curURL);
+                logger.info("fetchTime : {} ", (System.currentTimeMillis()-startFetch)/1000.0);
                 setStartMeasureTime(System.currentTimeMillis());
                 int statusCode = fetchResult.getStatusCode();
                 this.handlePageStatusCode(curURL, statusCode, EnglishReasonPhraseCatalog.INSTANCE.getReason(statusCode, Locale.ENGLISH));
@@ -193,7 +195,6 @@ public class WebCrawler implements Runnable {
                             logger.debug("Redirect page: {} has already been seen", curURL);
                             return;
                         }
-
                         curURL.setURL(fetchResult.getFetchedUrl());
                         curURL.setDocid(this.docIdServer.getNewDocID(fetchResult.getFetchedUrl()));
                     }
@@ -210,11 +211,13 @@ public class WebCrawler implements Runnable {
                     if (!this.shouldFollowLinksIn(page.getWebURL())) {
                         logger.debug("Not looking for links in page {}, as per your \"shouldFollowLinksInPage\" policy", page.getWebURL().getURL());
                     } else {
+                        Long parseDataTime = System.currentTimeMillis();
                         ParseData parseData = page.getParseData();
+                        logger.info("parseTime {}",(System.currentTimeMillis()-parseDataTime)/1000.0);
                         List<WebURL> toSchedule = new ArrayList();
                         int maxCrawlDepth = this.myController.getConfig().getMaxDepthOfCrawling();
                         Iterator var8 = parseData.getOutgoingUrls().iterator();
-
+                        Long outURLStart = System.currentTimeMillis();
                         while (true) {
                             while (var8.hasNext()) {
                                 WebURL webURL = (WebURL) var8.next();
@@ -241,12 +244,11 @@ public class WebCrawler implements Runnable {
                                     }
                                 }
                             }
-
                             this.frontier.scheduleAll(toSchedule);
+                            logger.info("outURLTime : {}",(System.currentTimeMillis()-outURLStart)/1000.0);
                             break;
                         }
                     }
-
                     boolean noIndex = this.myController.getConfig().isRespectNoIndex() && page.getContentType() != null && page.getContentType().contains("html") && ((HtmlParseData) page.getParseData()).getMetaTagValue("robots").contains("noindex");
                     if (!noIndex) {
                         this.visit(page);
