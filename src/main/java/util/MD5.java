@@ -19,7 +19,7 @@ public class MD5 {
             messageDigest.update(parameter.getBytes());
             byte[] message = messageDigest.digest();
             for (int i = 0; i < message.length; i++) {
-                buffer.append(Integer.toString((message[i] & 0x00ff) + 0x100, 16).substring(1)); //TODO private static int 로 변경
+                buffer.append(Integer.toString((message[i] & 0x00ff) + 0x100, 16).substring(1));
             }
         } catch (NoSuchAlgorithmException e) {
             logger.info("valueOf() {}", e.getMessage());

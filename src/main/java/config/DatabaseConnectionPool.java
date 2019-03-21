@@ -12,16 +12,15 @@ public class DatabaseConnectionPool {
     public static DataSource getDataSource() {
         PropertiesConfiguration properties = PropertiesReader.getProperties();
         ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(
-                properties.getString("database.url", "jdbc:mysql://localhost:3306/pilot"),
+                properties.getString("database.url"),
                 properties.getString("database.user"),
                 properties.getString("database.password"));
         PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
 
-
         GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
-        poolConfig.setMinIdle(properties.getInt("database.minIdle"));
-        poolConfig.setMaxTotal(properties.getInt("database.maxTotal"));
-        poolConfig.setMaxWaitMillis(properties.getInt("database.maxWait"));
+        poolConfig.setMinIdle(properties.getInt("database.minIdle",10));
+        poolConfig.setMaxTotal(properties.getInt("database.maxTotal",100));
+        poolConfig.setMaxWaitMillis(properties.getInt("database.maxWait",10000));
 
         GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory, poolConfig);
         poolableConnectionFactory.setPool(connectionPool);

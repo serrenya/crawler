@@ -1,9 +1,7 @@
 package model.handler;
 
 import edu.uci.ics.crawler4j.url.WebURL;
-import model.Filter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import model.UrlFilter;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -14,11 +12,10 @@ import java.util.regex.Pattern;
 
 public class FilterHandler {
     private static final String WHITE_SPACE = " ";
-    private final Logger logger = LoggerFactory.getLogger(FilterHandler.class);
-    private final Filter filter;
+    private final UrlFilter urlFilter;
 
-    public FilterHandler(Filter filter) {
-        this.filter = filter;
+    public FilterHandler(UrlFilter urlFilter) {
+        this.urlFilter = urlFilter;
     }
 
     public Boolean shouldVisit(String url) {
@@ -53,20 +50,20 @@ public class FilterHandler {
         return linkBuffer.toString();
     }
 
-    private Boolean isImageFile(WebURL link){
-        return Pattern.compile(filter.getImageExtension()).matcher(link.getURL()).matches();
+    public Boolean isImageFile(WebURL link) {
+        return Pattern.compile(urlFilter.getImageExtension()).matcher(link.getURL()).matches();
     }
 
     private Boolean isHtmlDocumentLink(String url) {
-        return Pattern.compile(filter.getExtensionFilters()).matcher(url).matches();
+        return Pattern.compile(urlFilter.getExtensionFilters()).matcher(url).matches();
     }
 
     private Boolean isSubPath(String url) {
-        return url.startsWith(filter.getSiteIdentifier());
+        return url.startsWith(urlFilter.getSiteIdentifier());
     }
 
     private Boolean urlPatternFilter(String url) {
-        List<String> patterns = filter.getUrlFilters();
+        List<String> patterns = urlFilter.getUrlFilters();
         return patterns.stream()
                 .anyMatch(pattern -> Pattern
                         .compile(pattern)
@@ -74,18 +71,18 @@ public class FilterHandler {
     }
 
     private Boolean excludeCategories(String url) {
-        Boolean isIncludeCategories = filter.getIncludeStatus();
+        Boolean isIncludeCategories = urlFilter.getIncludeStatus();
         if (!isIncludeCategories) {
             return false;
         }
-        List<String> categories = filter.getCategoryFilters();
+        List<String> categories = urlFilter.getCategoryFilters();
         String decodingUrl = extractCategory(decodingUrl(url));
         return categories.stream()
                 .anyMatch(category -> category.equals(decodingUrl));
     }
 
     private String extractCategory(String url) {
-        Matcher matcher = Pattern.compile(filter.getCategoryPattern()).matcher(url);
+        Matcher matcher = Pattern.compile(urlFilter.getCategoryPattern()).matcher(url);
         if (matcher.find()) {
             return matcher.group(1);
         }

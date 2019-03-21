@@ -12,12 +12,11 @@ public class PropertiesReader {
     private static Logger logger = LoggerFactory.getLogger(PropertiesReader.class);
 
     public static PropertiesConfiguration getProperties() {
-        PropertiesConfiguration properties = null;
         try {
-            properties = new Configurations().properties(new File("application.properties"));
+            return new Configurations().properties(new File("application.properties"));
         } catch (ConfigurationException e) {
             logger.info("getProperties() {}", e.getMessage());
         }
-        return properties;
+        return null;
     }
 }

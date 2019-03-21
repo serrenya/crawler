@@ -13,7 +13,6 @@ import java.util.List;
 
 public class MysqlDataBaseService implements DataBaseService {
 
-    private final Logger logger = LoggerFactory.getLogger(MysqlDataBaseService.class);
     private final DataSource dataSource;
 
     public MysqlDataBaseService(DataSource dataSource) {
@@ -21,15 +20,15 @@ public class MysqlDataBaseService implements DataBaseService {
     }
 
     @Override
-    public List<String> findSelector() {
+    public List<String> findFieldFilter() {
         ParserRepository repository = new ParserRepository(dataSource);
-        return repository.findSelector();
+        return repository.findFieldFilter();
     }
 
     @Override
-    public List<String> findFilter() {
+    public List<String> findUrlFilter() {
         ParserRepository parserRepository = new ParserRepository(dataSource);
-        return parserRepository.findFilter();
+        return parserRepository.findUrlFilter();
     }
 
     @Override

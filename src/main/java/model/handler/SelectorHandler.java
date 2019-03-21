@@ -1,6 +1,6 @@
 package model.handler;
 
-import model.Selector;
+import model.FieldFilter;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -9,17 +9,17 @@ import java.util.Objects;
 
 public class SelectorHandler {
     private static final String WHITE_SPACE = " ";
-    private final Selector selector;
+    private final FieldFilter fieldFilter;
 
-    public SelectorHandler(Selector selector) {
-        if (Objects.isNull(selector)) {
-            throw new NullPointerException("selector");
+    public SelectorHandler(FieldFilter fieldFilter) {
+        if (Objects.isNull(fieldFilter)) {
+            throw new NullPointerException("fieldFilter");
         }
-        this.selector = selector;
+        this.fieldFilter = fieldFilter;
     }
 
     public String extractTitle(Document document) {
-        return document.select(selector.getTitle()).text();
+        return document.select(fieldFilter.getTitle()).text();
     }
 
     public String extractContents(Document document) {
@@ -31,23 +31,23 @@ public class SelectorHandler {
     }
 
     private Elements extractBody(Document document) {
-        return document.select(selector.getBody());
+        return document.select(fieldFilter.getBody());
     }
 
     public String extractLinks(Document document) {
-        Elements links = extractBody(document).select(selector.getInnerUrl());
+        Elements links = extractBody(document).select(fieldFilter.getInnerUrl());
         StringBuffer linkBuffer = new StringBuffer();
         for (Element link : links) {
-            linkBuffer.append(link.attr(selector.getInnerUrlLink()) + WHITE_SPACE);
+            linkBuffer.append(link.attr(fieldFilter.getInnerUrlLink()) + WHITE_SPACE);
         }
         return linkBuffer.toString();
     }
 
     public String extractImages(Document document) {
-        Elements links = extractBody(document).select(selector.getImageUrl());
+        Elements links = extractBody(document).select(fieldFilter.getImageUrl());
         StringBuffer linkBuffer = new StringBuffer();
         for (Element link : links) {
-            linkBuffer.append(link.attr(selector.getImageUrlLink()) + WHITE_SPACE);
+            linkBuffer.append(link.attr(fieldFilter.getImageUrlLink()) + WHITE_SPACE);
         }
         return linkBuffer.toString();
     }

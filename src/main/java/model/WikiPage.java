@@ -84,19 +84,4 @@ public class WikiPage {
     public void setCreateTime(Timestamp createTime) {
         this.createTime = createTime;
     }
-
-    @Override
-    public String toString() {
-        return "WikiPage{" +
-                "url='" + url + '\'' +
-                ", siteIdentifier='" + siteIdentifier + '\'' +
-                ", title='" + title + '\'' +
-                ", contents='" + contents + '\'' +
-                ", images='" + images + '\'' +
-                ", links='" + links + '\'' +
-                ", html='" + html + '\'' +
-                ", crawlTime=" + crawlTime +
-                ", createTime=" + createTime +
-                '}';
-    }
 }

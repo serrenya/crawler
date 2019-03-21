@@ -9,22 +9,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class JsonParser {
-    private static Logger logger = LoggerFactory.getLogger(JsonParser.class);
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static String convertJson(WikiPage page){
-        String pageData = null; //TODO null X!!!
+    public static String convertJson(WikiPage page) {
         try {
-            pageData =  mapper.writeValueAsString(page);
+            return mapper.writeValueAsString(page);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return pageData;
+        return null;
     }
 
-    public static <T> T convertObject(String source, Class<T> destination){
+    public static <T> T convertObject(String source, Class<T> destination) {
         try {
-            return mapper.readValue(source,destination);
+            return mapper.readValue(source, destination);
         } catch (IOException e) {
             e.printStackTrace();
         }

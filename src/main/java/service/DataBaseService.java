@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface DataBaseService {
     void create(WikiPage wikiPage);
-    List<String> findSelector();
-    List<String> findFilter();
+    List<String> findFieldFilter();
+    List<String> findUrlFilter();
     void create(CrawlStatistics statistics);
 }

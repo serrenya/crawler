@@ -2,7 +2,7 @@ package model;
 
 import java.util.List;
 
-public class Filter {
+public class UrlFilter {
     private String siteIdentifier;
     private String domain;
     private String path;

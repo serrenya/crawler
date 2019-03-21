@@ -1,6 +1,6 @@
 package model;
 
-public class Selector {
+public class FieldFilter {
     private String siteIdentifier;
     private String domain;
     private String path;

@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParserRepository {
-    private static final String SELECTOR = "selector";
-    private static final String FILTER = "filter";
+    private static final String FIELD_FILTER = "fieldFilter";
+    private static final String URL_FILTER = "urlFilter";
     private final Logger logger = LoggerFactory.getLogger(ParserRepository.class);
     private final DataSource dataSource;
 
@@ -22,12 +22,12 @@ public class ParserRepository {
         this.dataSource = dataSource;
     }
 
-    public List<String> findSelector() {
-        return executeQuery(SELECTOR);
+    public List<String> findFieldFilter() {
+        return executeQuery(FIELD_FILTER);
     }
 
-    public List<String> findFilter() {
-        return executeQuery(FILTER);
+    public List<String> findUrlFilter() {
+        return executeQuery(URL_FILTER);
     }
 
     private List<String> executeQuery(String target) {

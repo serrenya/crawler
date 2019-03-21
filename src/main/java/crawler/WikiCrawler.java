@@ -4,7 +4,7 @@ import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
 import model.CrawlStatistics;
-import model.Filter;
+import model.UrlFilter;
 import model.WikiPage;
 import model.builder.WikiPageBuilder;
 import model.handler.FilterHandler;
@@ -17,6 +17,7 @@ import java.util.Objects;
 
 public class WikiCrawler extends WebCrawler {
 
+    private static final Double DIVIDE = 1000.0;
     private final Logger logger = LoggerFactory.getLogger(WikiCrawler.class);
     private final DataBaseService dataBaseService;
 
@@ -26,11 +27,11 @@ public class WikiCrawler extends WebCrawler {
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        Filter filter = getFilter();
-        if (Objects.isNull(filter)) {
+        UrlFilter urlFilter = getUrlFilter();
+        if (Objects.isNull(urlFilter)) {
             return false;
         }
-        FilterHandler filterHandler = generatorFilterHandler(filter);
+        FilterHandler filterHandler = generatorFilterHandler(urlFilter);
         return filterHandler.shouldVisit(url.getURL());
     }
 
@@ -38,19 +39,18 @@ public class WikiCrawler extends WebCrawler {
     public void visit(Page page) {
         WikiPage wikiPage = generatorPageBuilder().build(page);
         setEndMeasureTime(System.currentTimeMillis());
-        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / 1000.0); //todo 상수처리
-        logger.info("outgoingURLs : {}",page.getParseData().getOutgoingUrls().size());
+        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / DIVIDE);
         CrawlStatistics statistics = generateCrawlStatistics(wikiPage);
         dataBaseService.create(statistics);
         dataBaseService.create(wikiPage);
     }
 
     private WikiPageBuilder generatorPageBuilder() {
-        return new WikiPageBuilder(getSelector(), getFilter());
+        return new WikiPageBuilder(getFieldFilter(), getUrlFilter());
     }
 
-    private FilterHandler generatorFilterHandler(Filter filter) {
-        return new FilterHandler(filter);
+    private FilterHandler generatorFilterHandler(UrlFilter urlFilter) {
+        return new FilterHandler(urlFilter);
     }
 
     private CrawlStatistics generateCrawlStatistics(WikiPage page) {
@@ -60,7 +60,7 @@ public class WikiCrawler extends WebCrawler {
         statistics.setStartTime(TimeGenerator.currentTimeMillis(getStartMeasureTime()));
         statistics.setEndTime(TimeGenerator.currentTimeMillis(getEndMeasureTime()));
         statistics.setUrl(page.getUrl());
-        statistics.setPerformanceTime((getEndMeasureTime() - getStartMeasureTime()) / 1000.0);
+        statistics.setPerformanceTime((getEndMeasureTime() - getStartMeasureTime()) / DIVIDE);
 
         return statistics;
     }

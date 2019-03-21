@@ -57,17 +57,5 @@ public class CrawlStatistics {
     public void setQueueLength(Long queueLength) {
         this.queueLength = queueLength;
     }
-
-    @Override
-    public String toString() {
-        return "CrawlStatistics{" +
-                "startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", siteIdentifier='" + siteIdentifier + '\'' +
-                ", url='" + url + '\'' +
-                ", performanceTime=" + performanceTime +
-                ", queueLength=" + queueLength +
-                '}';
-    }
 }
 

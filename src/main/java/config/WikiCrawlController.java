@@ -6,11 +6,9 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
-import model.Filter;
-import model.Selector;
+import model.FieldFilter;
+import model.UrlFilter;
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import service.DataBaseService;
 import service.MysqlDataBaseService;
 import util.JsonParser;
@@ -21,65 +19,65 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WikiCrawlController {
-    private final Logger logger = LoggerFactory.getLogger(WikiCrawlController.class);
+    private static final Integer MAX_DEPTH = 1;
+    private static final Boolean RESUMABLE_FLAGE = true;
+    private static final Boolean SHUTDOWN_FLAGE = false;
     private final PropertiesConfiguration properties;
-    private final DataBaseService service;
-    private final DataSource dataSource;
+    private final DataBaseService dataBaseService;
     private List<CrawlController> controllers;
 
     public WikiCrawlController(DataSource dataSource) {
-        this.dataSource = dataSource;
-        this.service = new MysqlDataBaseService(dataSource);
+        this.dataBaseService = new MysqlDataBaseService(dataSource);
         this.controllers = new ArrayList<>();
         this.properties = PropertiesReader.getProperties();
     }
 
-    public void start(){
-        addController("crawler.namuStorage", "crawler.delayTime", "crawler.namu");
-        addController("crawler.wikipediaStorage", "crawler.delayTime", "crawler.wikipedia");
-        addController("crawler.rigvedaStorage", "crawler.delayTime", "crawler.rigvedawiki");
-        addController("crawler.libreStorage", "crawler.delayTime", "crawler.librewiki");
-        addController("crawler.uncycloStorage", "crawler.delayTime", "crawler.uncyclopedia");
+    public void start() { //LRU map -동적생성
+        addController("crawler.namuStorage", "crawler.namu");
+        addController("crawler.wikipediaStorage", "crawler.wikipedia");
+        addController("crawler.rigvedaStorage", "crawler.rigvedawiki");
+        addController("crawler.libreStorage", "crawler.librewiki");
+        addController("crawler.uncycloStorage", "crawler.uncyclopedia");
 
         startNonBlocking();
         waitUntilFinish();
     }
 
-    private Selector extractSelector(String seed) {
+    private FieldFilter extractFieldFilter(String seed) {
         String url = properties.getString(seed);
-        List<String> result = loadSelector(service);
+        List<String> result = loadFieldFilter(dataBaseService);
         for (String value : result) {
-            Selector selector = JsonParser.convertObject(value, Selector.class);
-            if (url.startsWith(selector.getSiteIdentifier())) {
-                return selector;
-            }
-        }
-        return null; //todo optional..
-    }
-
-    private Filter extractFilter(String seed) {
-        String url = properties.getString(seed);
-        List<String> result = loadFilter(service);
-        for (String value : result) {
-            Filter filter = JsonParser.convertObject(value, Filter.class);
-            if(url.startsWith(filter.getSiteIdentifier())){
-                return filter;
+            FieldFilter fieldFilter = JsonParser.convertObject(value, FieldFilter.class);
+            if (url.startsWith(fieldFilter.getSiteIdentifier())) {
+                return fieldFilter;
             }
         }
         return null;
     }
 
-    private List<String> loadSelector(DataBaseService service) {
-        return service.findSelector();
+    private UrlFilter extractUrlFilter(String seed) {
+        String url = properties.getString(seed);
+        List<String> result = loadUrlFilter(dataBaseService);
+        for (String value : result) {
+            UrlFilter urlFilter = JsonParser.convertObject(value, UrlFilter.class);
+            if (url.startsWith(urlFilter.getSiteIdentifier())) {
+                return urlFilter;
+            }
+        }
+        return null;
     }
 
-    private List<String> loadFilter(DataBaseService service) {
-        return service.findFilter();
+    private List<String> loadFieldFilter(DataBaseService service) {
+        return service.findFieldFilter();
+    }
+
+    private List<String> loadUrlFilter(DataBaseService service) {
+        return service.findUrlFilter();
     }
 
     private void startNonBlocking() {
         for (CrawlController controller : controllers) {
-            controller.startNonBlocking(new CrawlerFactory(dataSource), properties.getInt("crawler.number"));
+            controller.startNonBlocking(new CrawlerFactory(dataBaseService), properties.getInt("crawler.number"));
         }
     }
 
@@ -89,38 +87,36 @@ public class WikiCrawlController {
         }
     }
 
-    private void addController(String stoage, String delayTime, String seed) {
-        controllers.add(generateController(stoage, delayTime, seed));
+    private void addController(String stoage, String seed) {
+        controllers.add(generateController(stoage, seed));
     }
 
     private RobotstxtServer generateRobotstxtServer(CrawlConfig config) {
         return new RobotstxtServer(new RobotstxtConfig(), new PageFetcher(config));
     }
 
-    private CrawlController generateController(String storage, String delayTime, String seed) {
-        CrawlController controller = null;
+    private CrawlController generateController(String storage, String seed) {
         try {
-            CrawlConfig config = generateConfig(storage, delayTime);
+            CrawlConfig config = generateConfig(storage, properties.getInt("crawler.delayTime"));
             RobotstxtServer robotServer = generateRobotstxtServer(config);
-            controller = new CrawlController(config, new PageFetcher(config), robotServer);
+            CrawlController controller = new CrawlController(config, new PageFetcher(config), robotServer);
             controller.addSeed(properties.getString(seed));
-            controller.setFilter(extractFilter(seed));
-            controller.setSelector(extractSelector(seed));
+            controller.setUrlFilter(extractUrlFilter(seed));
+            controller.setFieldFilter(extractFieldFilter(seed));
+            return controller;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return controller;
+        return null;
     }
 
-    private CrawlConfig generateConfig(String storage, String delayTime) {
+    private CrawlConfig generateConfig(String storage, Integer delayTime) {
         CrawlConfig crawlConfig = new CrawlConfig();
         crawlConfig.setCrawlStorageFolder(properties.getString(storage));
-        crawlConfig.setPolitenessDelay(properties.getInt(delayTime));
-//        crawlConfig.setMaxDepthOfCrawling(1);
-        crawlConfig.setResumableCrawling(true);
-        crawlConfig.setShutdownOnEmptyQueue(false);
-//        crawlConfig.setMaxPagesToFetch(100);
-//        crawlConfig.setMaxOutgoingLinksToFollow();
+        crawlConfig.setPolitenessDelay(delayTime);
+        crawlConfig.setMaxDepthOfCrawling(MAX_DEPTH);
+        crawlConfig.setResumableCrawling(RESUMABLE_FLAGE);
+        crawlConfig.setShutdownOnEmptyQueue(SHUTDOWN_FLAGE);
         return crawlConfig;
     }
 }

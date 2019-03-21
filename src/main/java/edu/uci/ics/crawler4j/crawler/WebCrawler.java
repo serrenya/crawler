@@ -13,8 +13,8 @@ import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.parser.Parser;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import edu.uci.ics.crawler4j.url.WebURL;
-import model.Filter;
-import model.Selector;
+import model.UrlFilter;
+import model.FieldFilter;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class WebCrawler implements Runnable {
     protected static final Logger logger = LoggerFactory.getLogger(WebCrawler.class);
@@ -32,8 +31,8 @@ public class WebCrawler implements Runnable {
     protected CrawlController myController;
     protected Long startMeasureTime;
     protected Long endMeasureTime;
-    private Filter filter;
-    private Selector selector;
+    private UrlFilter urlFilter;
+    private FieldFilter fieldFilter;
     private Thread myThread;
     private Parser parser;
     private PageFetcher pageFetcher;
@@ -55,8 +54,8 @@ public class WebCrawler implements Runnable {
         this.parser = crawlController.getParser();
         this.myController = crawlController;
         this.isWaitingForNewURLs = false;
-        this.selector = crawlController.selector;
-        this.filter = crawlController.filter;
+        this.fieldFilter = crawlController.fieldFilter;
+        this.urlFilter = crawlController.urlFilter;
     }
 
     public int getMyId() {
@@ -181,9 +180,7 @@ public class WebCrawler implements Runnable {
                 if (curURL == null) {
                     return;
                 }
-                Long startFetch = System.currentTimeMillis();
                 fetchResult = this.pageFetcher.fetchPage(curURL);
-                logger.info("fetchTime : {} ", (System.currentTimeMillis()-startFetch)/1000.0);
                 setStartMeasureTime(System.currentTimeMillis());
                 int statusCode = fetchResult.getStatusCode();
                 this.handlePageStatusCode(curURL, statusCode, EnglishReasonPhraseCatalog.INSTANCE.getReason(statusCode, Locale.ENGLISH));
@@ -211,13 +208,10 @@ public class WebCrawler implements Runnable {
                     if (!this.shouldFollowLinksIn(page.getWebURL())) {
                         logger.debug("Not looking for links in page {}, as per your \"shouldFollowLinksInPage\" policy", page.getWebURL().getURL());
                     } else {
-                        Long parseDataTime = System.currentTimeMillis();
                         ParseData parseData = page.getParseData();
-                        logger.info("parseTime {}",(System.currentTimeMillis()-parseDataTime)/1000.0);
                         List<WebURL> toSchedule = new ArrayList();
                         int maxCrawlDepth = this.myController.getConfig().getMaxDepthOfCrawling();
                         Iterator var8 = parseData.getOutgoingUrls().iterator();
-                        Long outURLStart = System.currentTimeMillis();
                         while (true) {
                             while (var8.hasNext()) {
                                 WebURL webURL = (WebURL) var8.next();
@@ -245,7 +239,6 @@ public class WebCrawler implements Runnable {
                                 }
                             }
                             this.frontier.scheduleAll(toSchedule);
-                            logger.info("outURLTime : {}",(System.currentTimeMillis()-outURLStart)/1000.0);
                             break;
                         }
                     }
@@ -264,14 +257,12 @@ public class WebCrawler implements Runnable {
                     this.onUnexpectedStatusCode(curURL.getURL(), fetchResult.getStatusCode(), contentType, movedToUrl);
                     return;
                 }
-
                 page.setRedirect(true);
                 movedToUrl = fetchResult.getMovedToUrl();
                 if (movedToUrl == null) {
                     logger.warn("Unexpected error, URL: {} is redirected to NOTHING", curURL);
                     return;
                 }
-
                 page.setRedirectedToUrl(movedToUrl);
                 this.onRedirectedStatusCode(page);
                 if (!this.myController.getConfig().isFollowRedirects()) {
@@ -283,7 +274,6 @@ public class WebCrawler implements Runnable {
                     logger.debug("Redirect page: {} is already seen", curURL);
                     return;
                 }
-
                 WebURL webURL = new WebURL();
                 webURL.setURL(movedToUrl);
                 webURL.setParentDocid(curURL.getParentDocid());
@@ -325,12 +315,12 @@ public class WebCrawler implements Runnable {
         }
     }
 
-    public Filter getFilter() {
-        return filter;
+    public UrlFilter getUrlFilter() {
+        return urlFilter;
     }
 
-    public Selector getSelector() {
-        return selector;
+    public FieldFilter getFieldFilter() {
+        return fieldFilter;
     }
 
     public Thread getThread() {

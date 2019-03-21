@@ -11,8 +11,8 @@ import edu.uci.ics.crawler4j.url.TLDList;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.IO;
-import model.Filter;
-import model.Selector;
+import model.FieldFilter;
+import model.UrlFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +36,8 @@ public class CrawlController {
     protected final Object waitingLock;
     protected final Environment env;
     protected Parser parser;
-    protected Selector selector;
-    protected Filter filter;
+    protected FieldFilter fieldFilter;
+    protected UrlFilter urlFilter;
 
     public CrawlController(CrawlConfig config, PageFetcher pageFetcher, RobotstxtServer robotstxtServer) throws Exception {
         this(config, pageFetcher, new Parser(config), robotstxtServer);
@@ -116,7 +116,7 @@ public class CrawlController {
 
             for (int i = 1; i <= numberOfCrawlers; ++i) {
                 T crawler = crawlerFactory.newInstance();
-                Thread thread = new Thread(crawler, "Crawler " + i + filter.getDomain());
+                Thread thread = new Thread(crawler, "Crawler " + i);
                 crawler.setThread(thread);
                 crawler.init(i, this);
                 thread.start();
@@ -338,20 +338,20 @@ public class CrawlController {
         this.docIdServer = docIdServer;
     }
 
-    public Selector getSelector() {
-        return selector;
+    public FieldFilter getFieldFilter() {
+        return fieldFilter;
     }
 
-    public void setSelector(Selector selector) {
-        this.selector = selector;
+    public void setFieldFilter(FieldFilter fieldFilter) {
+        this.fieldFilter = fieldFilter;
     }
 
-    public Filter getFilter() {
-        return filter;
+    public UrlFilter getUrlFilter() {
+        return urlFilter;
     }
 
-    public void setFilter(Filter filter) {
-        this.filter = filter;
+    public void setUrlFilter(UrlFilter urlFilter) {
+        this.urlFilter = urlFilter;
     }
 
     /**
