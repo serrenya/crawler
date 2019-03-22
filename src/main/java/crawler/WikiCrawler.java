@@ -26,7 +26,7 @@ public class WikiCrawler extends WebCrawler {
     }
 
     @Override
-    public boolean shouldVisit(Page referringPage, WebURL url) {
+    public boolean shouldVisit(Page referringPage, WebURL url) { //url방문여부 결정
         UrlFilter urlFilter = getUrlFilter();
         if (Objects.isNull(urlFilter)) {
             return false;
@@ -36,10 +36,10 @@ public class WikiCrawler extends WebCrawler {
     }
 
     @Override
-    public void visit(Page page) {
+    public void visit(Page page) { //page에서 내용 추출 후 DB에 저장
+        logger.info("visit() {}",page.getWebURL().getURL());
         WikiPage wikiPage = generatorPageBuilder().build(page);
         setEndMeasureTime(System.currentTimeMillis());
-        logger.info("perfomenceTime {} {}", page.getWebURL().getURL(), (getEndMeasureTime() - getStartMeasureTime()) / DIVIDE);
         CrawlStatistics statistics = generateCrawlStatistics(wikiPage);
         dataBaseService.create(statistics);
         dataBaseService.create(wikiPage);

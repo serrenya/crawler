@@ -19,7 +19,7 @@ public class WikiPageBuilder {
     private UrlFilter urlFilter;
     public WikiPageBuilder(FieldFilter fieldFilter, UrlFilter urlFilter) {
         this.fieldFilter = fieldFilter;
-        this.urlFilter = urlFilter; //TODO urlFilter 걷어내기..
+        this.urlFilter = urlFilter;
     }
 
     public WikiPage build(Page page) {
@@ -35,8 +35,6 @@ public class WikiPageBuilder {
         wikiPage.setSiteIdentifier(fieldFilter.getSiteIdentifier());
         wikiPage.setTitle(selectorHandler.extractTitle(document));
         wikiPage.setContents(selectorHandler.extractContents(document));
-//        wikiPage.setLinks(filterHandler.extractLinks(links));
-//        wikiPage.setImages(filterHandler.extractImages(links));
         wikiPage.setLinks(selectorHandler.extractLinks(document));
         wikiPage.setImages(selectorHandler.extractImages(document));
         wikiPage.setHtml(selectorHandler.extractHtml(document));

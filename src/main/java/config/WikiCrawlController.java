@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WikiCrawlController {
-    private static final Integer MAX_DEPTH = 1;
     private static final Boolean RESUMABLE_FLAGE = true;
     private static final Boolean SHUTDOWN_FLAGE = false;
     private final PropertiesConfiguration properties;
@@ -32,7 +31,7 @@ public class WikiCrawlController {
         this.properties = PropertiesReader.getProperties();
     }
 
-    public void start() { //LRU map -동적생성
+    public void start() { //대상 사이트 별로 크롤링 시작
         addController("crawler.namuStorage", "crawler.namu");
         addController("crawler.wikipediaStorage", "crawler.wikipedia");
         addController("crawler.rigvedaStorage", "crawler.rigvedawiki");
@@ -43,7 +42,7 @@ public class WikiCrawlController {
         waitUntilFinish();
     }
 
-    private FieldFilter extractFieldFilter(String seed) {
+    private FieldFilter extractFieldFilter(String seed) { //사이트 별로 사용되는 필터 맵핑
         String url = properties.getString(seed);
         List<String> result = loadFieldFilter(dataBaseService);
         for (String value : result) {
@@ -75,7 +74,7 @@ public class WikiCrawlController {
         return service.findUrlFilter();
     }
 
-    private void startNonBlocking() {
+    private void startNonBlocking() { //크롤러 관리하는 팩토리 생성하여 시작
         for (CrawlController controller : controllers) {
             controller.startNonBlocking(new CrawlerFactory(dataBaseService), properties.getInt("crawler.number"));
         }
@@ -114,7 +113,6 @@ public class WikiCrawlController {
         CrawlConfig crawlConfig = new CrawlConfig();
         crawlConfig.setCrawlStorageFolder(properties.getString(storage));
         crawlConfig.setPolitenessDelay(delayTime);
-        crawlConfig.setMaxDepthOfCrawling(MAX_DEPTH);
         crawlConfig.setResumableCrawling(RESUMABLE_FLAGE);
         crawlConfig.setShutdownOnEmptyQueue(SHUTDOWN_FLAGE);
         return crawlConfig;
