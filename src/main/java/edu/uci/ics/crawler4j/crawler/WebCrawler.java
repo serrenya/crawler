@@ -350,4 +350,12 @@ public class WebCrawler implements Runnable {
     public boolean isNotWaitingForNewURLs() {
         return !this.isWaitingForNewURLs;
     }
+
+    public Frontier getFrontier() {
+        return frontier;
+    }
+
+    public void setFrontier(Frontier frontier) {
+        this.frontier = frontier;
+    }
 }

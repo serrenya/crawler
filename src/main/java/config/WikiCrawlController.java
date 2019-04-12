@@ -115,6 +115,7 @@ public class WikiCrawlController {
         crawlConfig.setPolitenessDelay(delayTime);
         crawlConfig.setResumableCrawling(RESUMABLE_FLAGE);
         crawlConfig.setShutdownOnEmptyQueue(SHUTDOWN_FLAGE);
+        crawlConfig.setMaxDownloadSize();
         return crawlConfig;
     }
 }
